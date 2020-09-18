@@ -1,0 +1,100 @@
+```plantuml
+
+@startuml
+class game.GameState {
+dealer: int
+player: int
+trump: int
+forehand: int
+declare_trump: int
+hands: int[4,36]
+tricks: int[9,4]
+trick_winner: int[9]
+trick_points: int[9]
+trick_first_player: int[9]
+current_trick: int[4]
+nr_trick: int
+nr_cards_in_trick: int
+nr_played_cards: int
+points: int[2]
+--
+get_card_played(int): int
+..
+to_json()
+from_json(data)
+}
+
+class game.GameSim {
+---
+init_from_state(state)
+init_from_cards(hands, dealer)
+get_observation()
+action_trump(action)
+action_play_card(card)
+is_done()
+}
+
+class game.GameObservation
+{
+dealer: int
+player: int
+trump: int
+forehand: int
+declare_trump: int
+hand: int[36]
+tricks: int[9,4]
+trick_winner: int[9]
+trick_points: int[9]
+trick_first_player: int[9]
+current_trick: int[4]
+nr_trick: int
+nr_cards_in_trick: int
+nr_played_cards: int
+points: int[2]
+---
+to_json()
+from_json(data)
+}
+
+abstract class game.GameRule {
+get_valid_cards()
+calc_trick_points()
+calc_trick_winner()
+}
+
+class game.RuleSchieber {
+}
+
+class game.game_state_util {
+{static} calculate_starting_hands_from_game()
+{static} calculate_points_from_tricks()
+{static} observation_from_state()
+{static} state_from_complete_game()
+{static} state_for_trump_from_complete_game()
+}
+
+class game.game_util {
+{static} get_cards_encoded()
+{static} get_cards_encoded_from_str()
+{static} convert_str_encoded_cards_to_int_encoded()
+{static} convert_int_encoded_cards_to_str_encoded()
+{static} convert_one_hot_encoded_cards_to_str_encoded_list()
+{static} convert_one_hot_encoded_cards_to_int_encoded_list()
+{static} count_colors()
+{static} deal_random_hand()
+
+
+
+
+
+
+
+}
+
+
+game.GameRule <|-- game.RuleSchieber
+game.GameSim o--> "rule" game.GameRule
+game.GameSim o--> "state" game.GameState
+game.GameSim ..>  game.GameObservation
+
+```

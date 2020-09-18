@@ -1,0 +1,81 @@
+@startuml
+
+title Jass base classes
+class game.GameState {
+dealer: int
+player: int
+trump: int
+forehand: int
+declare_trump: int
+hands: int[4,36]
+tricks: int[9,4]
+trick_winner: int[9]
+trick_points: int[9]
+trick_first_player: int[9]
+current_trick: int[4]
+nr_trick: int
+nr_cards_in_trick: int
+nr_played_cards: int
+points: int[2]
+--
+get_card_played(int): int
+..
+to_json()
+from_json(data)
+}
+
+class game.GameSim {
+init_from_state(state)
+init_from_cards(hands, dealer)
+get_observation()
+action_trump(action)
+action_play_card(card)
+is_done()
+}
+
+class game.GameObservation
+{
+dealer: int
+player: int
+trump: int
+forehand: int
+declare_trump: int
+hand: int[36]
+tricks: int[9,4]
+trick_winner: int[9]
+trick_points: int[9]
+trick_first_player: int[9]
+current_trick: int[4]
+nr_trick: int
+nr_cards_in_trick: int
+nr_played_cards: int
+points: int[2]
+---
+to_json()
+from_json(data)
+}
+
+abstract class game.GameRule {
+get_valid_cards()
+calc_trick_points()
+calc_trick_winner()
+}
+
+class game.RuleSchieber {
+get_valid_cards()
+calc_trick_points()
+calc_trick_winner()
+assert_invariants(state)
+}
+
+together {
+class game.GameState
+class game.GameObservation
+}
+game.GameState -[hidden] game.GameObservation
+
+game.GameRule <|-- game.RuleSchieber
+game.GameSim o--> "rule" game.GameRule
+game.GameSim o--> "state" game.GameState
+game.GameSim ..>  game.GameObservation
+@enduml
