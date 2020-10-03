@@ -60,7 +60,7 @@ class AgentSimpleRule (Agent):
             elif obs.trump == OBE_ABE:
                 return self.get_highest_card(valid_cards)
             else:
-                return self.get_most_valuable_trump_card(valid_cards)
+                return self.get_highest_trump_card(valid_cards, obs.trump)
         pass
 
     def get_trump_card_sums(self, hand):
@@ -73,6 +73,34 @@ class AgentSimpleRule (Agent):
             trump_card_sums.append(trump_card_sum)
         return trump_card_sums
 
+    def get_highest_trump_card(self, valid_cards, trump):
+        # all trumps in hand
+        trump_cards = valid_cards * color_masks[trump, :]
+        print(trump_cards)
+
+        remaining_trump_cards = np.ones([36], np.int32)
+        for index, value in enumerate(trump_cards):
+            if value == 1:
+                higher_trump_cards = trump_cards * higher_trump[index, :]
+                remaining_trump_cards = higher_trump_cards * remaining_trump_cards
+                if not remaining_trump_cards.any():  # all zeros, so no higher trump card
+                    return index
+        raise ValueError("This should not happen!")
+
+    def get_lowest_trump_card(self, valid_cards, trump):
+        # all trumps in hand
+        trump_cards = valid_cards * color_masks[trump, :]
+        print(trump_cards)
+
+        remaining_trump_cards = np.ones([36], np.int32)
+        for index, value in enumerate(trump_cards):
+            if value == 1:
+                lower_trump_cards = trump_cards * lower_trump[index, :]
+                remaining_trump_cards = lower_trump_cards * remaining_trump_cards
+                if sum(remaining_trump_cards) <= 1:  # all zeros except lowest trump
+                    return index
+        raise ValueError("This should not happen!")
+
     def get_lowest_card(self, valid_cards):
         return self.get_minmax_card(valid_cards, lambda x, y: x > y)
 
@@ -84,7 +112,8 @@ class AgentSimpleRule (Agent):
         edge_normalized_index = None
         for index, value in enumerate(valid_cards):
             normalized_index = index % 9  # 9 Cards per color in the array
-            if value == 1 and (edge_card is None or compare_index(normalized_index,edge_normalized_index)):
+            if value == 1 and (edge_card is None or compare_index(normalized_index, edge_normalized_index)):
                 edge_card = index
                 edge_normalized_index = normalized_index
         return edge_card
+

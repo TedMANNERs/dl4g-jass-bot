@@ -8,7 +8,7 @@ if first_turn
 		else if obeabe
 			return highest_card
 		else
-			return most_valuable_trump_card
+			return highest_trump_card
 
 play_card = lowest_valid_card
 

@@ -34,6 +34,24 @@ class JassAgentTestCase(unittest.TestCase):
         highest = agent.get_highest_card(hand)
         print(highest)
 
+    def test_get_highest_trump_card(self):
+        agent = AgentSimpleRule()
+        hand = deal_random_hand()[0]
+        #hand = [1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        for arr in np.array_split(hand, 4):
+            print(arr)
+        trump = agent.get_highest_trump_card(hand, DIAMONDS)
+        print(trump)
+
+    def test_get_lowest_trump_card(self):
+        agent = AgentSimpleRule()
+        hand = deal_random_hand()[0]
+        hand = [1,0,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        for arr in np.array_split(hand, 4):
+            print(arr)
+        trump = agent.get_lowest_trump_card(hand, DIAMONDS)
+        print(trump)
+
 
 if __name__ == '__main__':
     unittest.main()
