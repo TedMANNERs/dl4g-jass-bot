@@ -1,12 +1,30 @@
 import unittest
 
 from jass.agents.agent_simple_rule import AgentSimpleRule
+from jass.game.game_observation import GameObservation
 from jass.game.game_util import *
 from jass.game.const import *
 import numpy as np
 
 
 class JassAgentTestCase(unittest.TestCase):
+
+    def test_action_play_card(self):
+        agent = AgentSimpleRule()
+        obs = GameObservation()
+
+        obs.hand = deal_random_hand()[0]
+        print("Hand = {0}".format(obs.hand))
+        obs.current_trick = [DA]
+        obs.nr_cards_in_trick = len(obs.current_trick)
+        print("Current Trick = {0}".format(obs.current_trick))
+        obs.trump = DIAMONDS
+        print("Trump = {0}".format(obs.trump))
+        valid_cards = agent._rule.get_valid_cards_from_obs(obs)
+        print("Valid Cards = {0}".format(valid_cards))
+
+        card = agent.action_play_card(obs)
+        print("Played Card = {0}".format(card))
 
     def test_get_trump_card_sums(self):
         agent = AgentSimpleRule()
