@@ -1,0 +1,26 @@
+valid_cards = get_valid_cards()
+trick_points = get_points_from_current_trick()
+
+if first_turn
+	if first_player
+		if oneufe
+			Return lowest_card
+		else if obeabe
+			return highest_card
+		else
+			return most_valuable_trump_card
+
+play_card = lowest_valid_card
+
+If current_trick has no Trump
+	If valid_cards contain higher non-trump card
+		If valid_cards contain current_color
+			Play_card = highest non-trump card of current_color
+		else if trick_points > 8
+				if any_trump in valid_cards
+					play_card = lowest_trump_card
+else if trick_points > 10
+	if any_trump in valid_cards
+		play_card = lowest_trump_card
+	
+return play_card
