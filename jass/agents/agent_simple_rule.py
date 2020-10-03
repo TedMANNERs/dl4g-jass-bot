@@ -74,14 +74,17 @@ class AgentSimpleRule (Agent):
         return trump_card_sums
 
     def get_lowest_card(self, valid_cards):
-        lowest_cards = {}
+        return self.get_minmax_card(valid_cards, lambda x, y: x > y)
+
+    def get_highest_card(self, valid_cards):
+        return self.get_minmax_card(valid_cards, lambda x, y: x < y)
+
+    def get_minmax_card(self, valid_cards, compare_index=None):
+        edge_card = None
+        edge_normalized_index = None
         for index, value in enumerate(valid_cards):
-            color_index = color_of_card[index]
-            if value == 1:
-                lowest_cards[color_index] = index
-        lowest_card = None
-        for key, value in lowest_cards.items():
-            normalized_index = value - color_of_card[key]  # card index - color offset
-            if lowest_card is None or normalized_index <= lowest_card:
-                lowest_card = value
-        return lowest_card
+            normalized_index = index % 9  # 9 Cards per color in the array
+            if value == 1 and (edge_card is None or compare_index(normalized_index,edge_normalized_index)):
+                edge_card = index
+                edge_normalized_index = normalized_index
+        return edge_card

@@ -3,6 +3,7 @@ import unittest
 from jass.agents.agent_simple_rule import AgentSimpleRule
 from jass.game.game_util import *
 from jass.game.const import *
+import numpy as np
 
 
 class JassAgentTestCase(unittest.TestCase):
@@ -18,11 +19,20 @@ class JassAgentTestCase(unittest.TestCase):
 
     def test_get_lowest_card(self):
         agent = AgentSimpleRule()
-        #hand = deal_random_hand()[0]
-        hand = [1,0,0,0,0,1,1,0,0, 1,0,0,0,0,0,1,0,0, 0,0,0,0,0,0,0,0,0, 1,0,1,0,0,0,0,0,1]
-        print(hand)
+        hand = deal_random_hand()[0]
+        #hand = [1,0,0,0,1,0,0,0,0, 1,0,0,0,0,1,0,1,0, 0,0,0,0,1,0,0,0,0, 1,0,1,0,0,0,0,0,0]
+        for arr in np.array_split(hand, 4):
+            print(arr)
         lowest = agent.get_lowest_card(hand)
         print(lowest)
+
+    def test_get_highest_card(self):
+        agent = AgentSimpleRule()
+        hand = deal_random_hand()[0]
+        for arr in np.array_split(hand, 4):
+            print(arr)
+        highest = agent.get_highest_card(hand)
+        print(highest)
 
 
 if __name__ == '__main__':
