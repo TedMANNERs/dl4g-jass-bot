@@ -16,6 +16,14 @@ class JassAgentTestCase(unittest.TestCase):
         trump_card_sums = agent.get_trump_card_sums(hand)
         print(trump_card_sums)
 
+    def test_get_lowest_card(self):
+        agent = AgentSimpleRule()
+        #hand = deal_random_hand()[0]
+        hand = [1,0,0,0,0,1,1,0,0, 1,0,0,0,0,0,1,0,0, 0,0,0,0,0,0,0,0,0, 1,0,1,0,0,0,0,0,1]
+        print(hand)
+        lowest = agent.get_lowest_card(hand)
+        print(lowest)
+
 
 if __name__ == '__main__':
     unittest.main()

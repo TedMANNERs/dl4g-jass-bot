@@ -1,16 +1,21 @@
 
 import logging
+import numpy as np
+from jass.agents.agent import Agent
 from jass.game.game_observation import GameObservation
+from jass.game.rule_schieber import RuleSchieber
 from jass.game.const import *
 
 
-class AgentSimpleRule:
+class AgentSimpleRule (Agent):
     """
     Agent to act as a player in a match of jass.
     """
     def __init__(self):
         # log actions
         self._logger = logging.getLogger(__name__)
+        # Use rule object to determine valid actions
+        self._rule = RuleSchieber()
 
     def action_trump(self, obs: GameObservation) -> int:
         """
@@ -45,7 +50,18 @@ class AgentSimpleRule:
         Returns:
             the card to play, int encoded as defined in jass.match.const
         """
-        raise NotImplementedError
+        valid_cards = self._rule.get_valid_cards_from_obs(obs)
+        trick_points = obs.trick_points
+
+        # First turn and first player?
+        if obs.nr_tricks == 0 and obs.nr_cards_in_trick == 0:
+            if obs.trump == UNE_UFE:
+                return self.get_lowest_card(valid_cards)
+            elif obs.trump == OBE_ABE:
+                return self.get_highest_card(valid_cards)
+            else:
+                return self.get_most_valuable_trump_card(valid_cards)
+        pass
 
     def get_trump_card_sums(self, hand):
         card_indexes = [index for index, value in enumerate(hand) if value == 1]
@@ -56,3 +72,16 @@ class AgentSimpleRule:
             trump_card_sum = sum([card_value for card_value in iterator if iterator.index in card_indexes])
             trump_card_sums.append(trump_card_sum)
         return trump_card_sums
+
+    def get_lowest_card(self, valid_cards):
+        lowest_cards = {}
+        for index, value in enumerate(valid_cards):
+            color_index = color_of_card[index]
+            if value == 1:
+                lowest_cards[color_index] = index
+        lowest_card = None
+        for key, value in lowest_cards.items():
+            normalized_index = value - color_of_card[key]  # card index - color offset
+            if lowest_card is None or normalized_index <= lowest_card:
+                lowest_card = value
+        return lowest_card
