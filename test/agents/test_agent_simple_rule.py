@@ -18,7 +18,7 @@ class JassAgentTestCase(unittest.TestCase):
         obs.current_trick = [DA]
         obs.nr_cards_in_trick = len(obs.current_trick)
         print("Current Trick = {0}".format(obs.current_trick))
-        obs.trump = DIAMONDS
+        obs.trump = OBE_ABE
         print("Trump = {0}".format(obs.trump))
         valid_cards = agent._rule.get_valid_cards_from_obs(obs)
         print("Valid Cards = {0}".format(valid_cards))

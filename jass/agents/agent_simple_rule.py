@@ -40,6 +40,7 @@ class AgentSimpleRule (Agent):
         self._logger.info('Result: {}'.format(result))
         return result
 
+    # TODO: color_masks does not work for UNE_UFE and OBE_ABE (separate logic?)
     def action_play_card(self, obs: GameObservation) -> int:
         """
         Determine the card to play.
