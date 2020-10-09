@@ -51,39 +51,46 @@ class AgentSimpleRule (Agent):
         Returns:
             the card to play, int encoded as defined in jass.match.const
         """
-        valid_cards = self._rule.get_valid_cards_from_obs(obs)
-        current_trick = self.resize_to_card_array(obs.current_trick)
-        current_trick_points = sum(current_trick * card_values[obs.trump])
+        try:
+            valid_cards = self._rule.get_valid_cards_from_obs(obs)
+            current_trick = self.resize_to_card_array(obs.current_trick)
+            current_trick_points = sum(current_trick * card_values[obs.trump])
 
-        # Simple rules for UNE_UFE and OBE_ABE
-        if obs.trump == UNE_UFE:
-            return self.get_lowest_card(valid_cards)
-        elif obs.trump == OBE_ABE:
-            return self.get_highest_card(valid_cards)
+            # Simple rules for UNE_UFE and OBE_ABE
+            if obs.trump == UNE_UFE:
+                return self.get_lowest_card(valid_cards)
+            elif obs.trump == OBE_ABE:
+                return self.get_highest_card(valid_cards)
 
-        # Now handling trumps
-        # Am I the first player?
-        if obs.nr_cards_in_trick == 0:
-            return self.get_highest_trump_card(valid_cards, obs.trump)
+            # Now handling trumps
+            # Am I the first player?
+            if obs.nr_cards_in_trick == 0:
+                return self.get_highest_trump_card(valid_cards, obs.trump)
 
-        # Start off with the worst cards if not the first player in a trick
-        play_card = self.get_lowest_card(valid_cards)
+            # Start off with the worst cards if not the first player in a trick
+            play_card = self.get_lowest_card(valid_cards)
 
-        trick_trump_cards = current_trick * color_masks[obs.trump]
-        non_trump_cards = valid_cards * (np.ones([36]) - color_masks[obs.trump])
-        valid_cards_contain_any_trump = (valid_cards * color_masks[obs.trump]).any()
+            trick_trump_cards = current_trick * color_masks[obs.trump]
+            non_trump_cards = valid_cards * (np.ones([36]) - color_masks[obs.trump])
+            valid_cards_contain_any_trump = (valid_cards * color_masks[obs.trump]).any()
 
-        if not trick_trump_cards.any():
-            higher_non_trump_cards = self.get_higher_non_trump_cards(non_trump_cards, obs.current_trick)
-            if higher_non_trump_cards.any():
-                play_card = self.get_highest_card(valid_cards)
-                if current_trick_points > 8 and valid_cards_contain_any_trump:
-                    play_card = self.get_lowest_trump_card(valid_cards, obs.trump)
-        elif current_trick_points > 10 and valid_cards_contain_any_trump:
-            play_card = self.get_lowest_trump_card(valid_cards, obs.trump)
+            if not trick_trump_cards.any():
+                higher_non_trump_cards = self.get_higher_non_trump_cards(non_trump_cards, obs.current_trick)
+                if higher_non_trump_cards.any():
+                    play_card = self.get_highest_card(valid_cards)
+                    if current_trick_points > 8 and valid_cards_contain_any_trump:
+                        play_card = self.get_lowest_trump_card(valid_cards, obs.trump)
+            elif current_trick_points > 10 and valid_cards_contain_any_trump:
+                play_card = self.get_lowest_trump_card(valid_cards, obs.trump)
 
-        print(play_card)
-        return play_card
+            self._logger.info('Played card: {}'.format(card_strings[play_card]))
+            return play_card
+
+        except Exception as e:
+            self._logger.error("Rule failed. Continuing with random card.", e)
+            card = self._rng.choice(np.flatnonzero(valid_cards))
+            self._logger.info('Played card: {}'.format(card_strings[card]))
+            return card
 
     def resize_to_card_array(self, card_indexes):
         cards = np.zeros([36])
