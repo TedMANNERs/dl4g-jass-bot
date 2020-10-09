@@ -16,6 +16,8 @@ class AgentSimpleRule (Agent):
         self._logger = logging.getLogger(__name__)
         # Use rule object to determine valid actions
         self._rule = RuleSchieber()
+        # init random number generator
+        self._rng = np.random.default_rng()
 
     def action_trump(self, obs: GameObservation) -> int:
         """
@@ -51,9 +53,10 @@ class AgentSimpleRule (Agent):
         Returns:
             the card to play, int encoded as defined in jass.match.const
         """
+        valid_cards = self._rule.get_valid_cards_from_obs(obs)
+        current_trick = self.resize_to_card_array(obs.current_trick)
+
         try:
-            valid_cards = self._rule.get_valid_cards_from_obs(obs)
-            current_trick = self.resize_to_card_array(obs.current_trick)
             current_trick_points = sum(current_trick * card_values[obs.trump])
 
             # Simple rules for UNE_UFE and OBE_ABE
@@ -75,7 +78,7 @@ class AgentSimpleRule (Agent):
             valid_cards_contain_any_trump = (valid_cards * color_masks[obs.trump]).any()
 
             if not trick_trump_cards.any():
-                higher_non_trump_cards = self.get_higher_non_trump_cards(non_trump_cards, obs.current_trick)
+                higher_non_trump_cards = self.get_higher_non_trump_cards(non_trump_cards, current_trick)
                 if higher_non_trump_cards.any():
                     play_card = self.get_highest_card(valid_cards)
                     if current_trick_points > 8 and valid_cards_contain_any_trump:
@@ -87,6 +90,12 @@ class AgentSimpleRule (Agent):
             return play_card
 
         except Exception as e:
+
+            self._logger.error("Hand          = {0}\n"
+                               "Current Trick = {1}\n"
+                               "Trump         = {2}\n"
+                               "Valid Cards   = {3}"
+                               .format(obs.hand, obs.current_trick, obs.trump, valid_cards))
             self._logger.error("Rule failed. Continuing with random card.", e)
             card = self._rng.choice(np.flatnonzero(valid_cards))
             self._logger.info('Played card: {}'.format(card_strings[card]))
