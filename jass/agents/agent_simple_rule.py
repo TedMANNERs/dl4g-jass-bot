@@ -55,24 +55,26 @@ class AgentSimpleRule (Agent):
         current_trick = self.resize_to_card_array(obs.current_trick)
         current_trick_points = sum(current_trick * card_values[obs.trump])
 
-        # First player?
+        # Simple rules for UNE_UFE and OBE_ABE
+        if obs.trump == UNE_UFE:
+            return self.get_lowest_card(valid_cards)
+        elif obs.trump == OBE_ABE:
+            return self.get_highest_card(valid_cards)
+
+        # Now handling trumps
+        # Am I the first player?
         if obs.nr_cards_in_trick == 0:
-            if obs.trump == UNE_UFE:
-                return self.get_lowest_card(valid_cards)
-            elif obs.trump == OBE_ABE:
-                return self.get_highest_card(valid_cards)
-            else:
-                return self.get_highest_trump_card(valid_cards, obs.trump)
+            return self.get_highest_trump_card(valid_cards, obs.trump)
 
         # Start off with the worst cards if not the first player in a trick
         play_card = self.get_lowest_card(valid_cards)
 
         trick_trump_cards = current_trick * color_masks[obs.trump]
-        # TODO: select only cards that are actually higher than the cards in the current trick
-        higher_non_trump_cards = valid_cards * (np.ones([36]) - color_masks[obs.trump])
+        non_trump_cards = valid_cards * (np.ones([36]) - color_masks[obs.trump])
         valid_cards_contain_any_trump = (valid_cards * color_masks[obs.trump]).any()
 
         if not trick_trump_cards.any():
+            higher_non_trump_cards = self.get_higher_non_trump_cards(non_trump_cards, obs.current_trick)
             if higher_non_trump_cards.any():
                 play_card = self.get_highest_card(valid_cards)
                 if current_trick_points > 8 and valid_cards_contain_any_trump:
@@ -143,3 +145,11 @@ class AgentSimpleRule (Agent):
                 edge_normalized_index = normalized_index
         return edge_card
 
+    def get_higher_non_trump_cards(self, non_trump_cards, current_trick):
+        higher_non_trump_cards = np.zeros([36])
+        highest_played_card = self.get_highest_card(current_trick)
+        for index, value in enumerate(non_trump_cards):
+            if value == 1 and index < highest_played_card:
+                higher_non_trump_cards[index] = value
+
+        return higher_non_trump_cards
