@@ -1,1 +1,1 @@
-web: serverless examples/service/player_service:app
+web: python examples/service/player_service.py
