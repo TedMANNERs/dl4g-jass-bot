@@ -91,11 +91,12 @@ class AgentSimpleRule (Agent):
 
         except Exception as e:
 
-            self._logger.error("Hand          = {0}\n"
-                               "Current Trick = {1}\n"
+            self._logger.error("\n"
+                               "Hand          = {0}\n"
+                               "Valid Cards   = {1}\n"
                                "Trump         = {2}\n"
-                               "Valid Cards   = {3}"
-                               .format(obs.hand, obs.current_trick, obs.trump, valid_cards))
+                               "Current Trick = {3}"
+                               .format(obs.hand, valid_cards, obs.current_trick, obs.trump))
             self._logger.error("Rule failed. Continuing with random card.", e)
             card = self._rng.choice(np.flatnonzero(valid_cards))
             self._logger.info('Played card: {}'.format(card_strings[card]))
@@ -129,6 +130,7 @@ class AgentSimpleRule (Agent):
                 remaining_trump_cards = higher_trump_cards * remaining_trump_cards
                 if not remaining_trump_cards.any():  # all zeros, so no higher trump card
                     return index
+        self._logger.error("Could not get highest trump card\n Trump Cards = {0}".format(trump_cards))
         raise ValueError("This should not happen!")
 
     def get_lowest_trump_card(self, valid_cards, trump):
@@ -143,6 +145,7 @@ class AgentSimpleRule (Agent):
                 remaining_trump_cards = lower_trump_cards * remaining_trump_cards
                 if sum(remaining_trump_cards) <= 1:  # all zeros except lowest trump
                     return index
+        self._logger.error("Could not get lowest trump card\n Trump Cards = {0}".format(trump_cards))
         raise ValueError("This should not happen!")
 
     def get_lowest_card(self, valid_cards):
