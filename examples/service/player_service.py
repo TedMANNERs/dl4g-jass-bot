@@ -9,6 +9,7 @@ import logging
 
 from jass.service.player_service_app import PlayerServiceApp
 from jass.agents.agent_random_schieber import AgentRandomSchieber
+from jass.agents.agent_simple_rule import AgentSimpleRule
 
 
 def create_app():
@@ -30,5 +31,10 @@ def create_app():
 
     # add some players
     app.add_player('random', AgentRandomSchieber())
+    app.add_player('simple_rule', AgentSimpleRule())
 
     return app
+
+
+if __name__ == '__main__':
+    create_app().run(host="0.0.0.0", port=8888)
