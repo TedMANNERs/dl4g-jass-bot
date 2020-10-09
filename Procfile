@@ -1,0 +1,1 @@
+web: gunicorn examples/service/player_service:app
