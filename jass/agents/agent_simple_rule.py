@@ -66,17 +66,16 @@ class AgentSimpleRule (Agent):
                 return self.get_highest_card(valid_cards)
 
             # Now handling trumps
-            trick_trump_cards = current_trick * color_masks[obs.trump]
+            valid_cards_contain_any_trump = (valid_cards * color_masks[obs.trump]).any()
             # Am I the first player?
-            if obs.nr_cards_in_trick == 0 and trick_trump_cards.any():
+            if obs.nr_cards_in_trick == 0 and valid_cards_contain_any_trump:
                 return self.get_highest_trump_card(valid_cards, obs.trump)
 
             # Start off with the worst cards if not the first player in a trick
             play_card = self.get_lowest_card(valid_cards)
 
-
+            trick_trump_cards = current_trick * color_masks[obs.trump]
             non_trump_cards = valid_cards * (np.ones([36]) - color_masks[obs.trump])
-            valid_cards_contain_any_trump = (valid_cards * color_masks[obs.trump]).any()
 
             if not trick_trump_cards.any():
                 higher_non_trump_cards = self.get_higher_non_trump_cards(non_trump_cards, current_trick)
