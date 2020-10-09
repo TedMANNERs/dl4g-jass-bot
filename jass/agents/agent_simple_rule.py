@@ -66,14 +66,15 @@ class AgentSimpleRule (Agent):
                 return self.get_highest_card(valid_cards)
 
             # Now handling trumps
+            trick_trump_cards = current_trick * color_masks[obs.trump]
             # Am I the first player?
-            if obs.nr_cards_in_trick == 0:
+            if obs.nr_cards_in_trick == 0 and trick_trump_cards.any():
                 return self.get_highest_trump_card(valid_cards, obs.trump)
 
             # Start off with the worst cards if not the first player in a trick
             play_card = self.get_lowest_card(valid_cards)
 
-            trick_trump_cards = current_trick * color_masks[obs.trump]
+
             non_trump_cards = valid_cards * (np.ones([36]) - color_masks[obs.trump])
             valid_cards_contain_any_trump = (valid_cards * color_masks[obs.trump]).any()
 
@@ -96,7 +97,7 @@ class AgentSimpleRule (Agent):
                                "Valid Cards   = {1}\n"
                                "Trump         = {2}\n"
                                "Current Trick = {3}"
-                               .format(obs.hand, valid_cards, obs.current_trick, obs.trump))
+                               .format(obs.hand, valid_cards, obs.trump, obs.current_trick))
             self._logger.error("Rule failed. Continuing with random card.", e)
             card = self._rng.choice(np.flatnonzero(valid_cards))
             self._logger.info('Played card: {}'.format(card_strings[card]))
@@ -121,7 +122,6 @@ class AgentSimpleRule (Agent):
     def get_highest_trump_card(self, valid_cards, trump):
         # all trumps in hand
         trump_cards = valid_cards * color_masks[trump, :]
-        print(trump_cards)
 
         remaining_trump_cards = np.ones([36], np.int32)
         for index, value in enumerate(trump_cards):
@@ -130,13 +130,12 @@ class AgentSimpleRule (Agent):
                 remaining_trump_cards = higher_trump_cards * remaining_trump_cards
                 if not remaining_trump_cards.any():  # all zeros, so no higher trump card
                     return index
-        self._logger.error("Could not get highest trump card\n Trump Cards = {0}".format(trump_cards))
+        self._logger.error("Could not get highest trump card\nTrump Cards = {0}".format(trump_cards))
         raise ValueError("This should not happen!")
 
     def get_lowest_trump_card(self, valid_cards, trump):
         # all trumps in hand
         trump_cards = valid_cards * color_masks[trump, :]
-        print(trump_cards)
 
         remaining_trump_cards = np.ones([36], np.int32)
         for index, value in enumerate(trump_cards):
@@ -145,7 +144,7 @@ class AgentSimpleRule (Agent):
                 remaining_trump_cards = lower_trump_cards * remaining_trump_cards
                 if sum(remaining_trump_cards) <= 1:  # all zeros except lowest trump
                     return index
-        self._logger.error("Could not get lowest trump card\n Trump Cards = {0}".format(trump_cards))
+        self._logger.error("Could not get lowest trump card\nTrump Cards = {0}".format(trump_cards))
         raise ValueError("This should not happen!")
 
     def get_lowest_card(self, valid_cards):
