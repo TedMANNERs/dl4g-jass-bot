@@ -1,1 +1,1 @@
-web: gunicorn examples/service/player_service:app
+web: serverless examples/service/player_service:app
