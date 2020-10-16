@@ -14,7 +14,7 @@ class JassAgentTestCase(unittest.TestCase):
         obs = GameObservation()
 
         obs.hand = deal_random_hand()[0]
-        obs.hand = [0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,1,0,0,1,0,1,1,0,0,1,0,1,0,0,1,0,0,0,0]
+        obs.hand = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
         print("Hand = {0}".format(obs.hand))
         obs.current_trick = [DA]
         obs.nr_cards_in_trick = len(obs.current_trick)
