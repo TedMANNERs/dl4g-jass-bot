@@ -6,8 +6,11 @@ class Node:
         self.card = card
         self.parent = None
         self.children = []
-        self.simulation_count = 0
-        self.accumulated_payoff = np.zeros([4])
+        self.isExpanded = False
+        self.visit_count = 0
+        self.wins = 0
+        self.accumulated_payoff = 0
+        self.enemy_accumulated_payoff = 0
         self.ucb = 0
 
     def get_path(self):
