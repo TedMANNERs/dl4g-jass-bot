@@ -47,15 +47,14 @@ class AgentCheatingMonteCarlo (CheatingAgent):
         Returns:
             the card to play, int encoded as defined in jass.match.const
         """
-        if state.nr_tricks <= 0:
-            self.search_tree = MonteCarloTreeSearch(state.current_trick)
+        self.search_tree = MonteCarloTreeSearch(state, _rule)
 
-        valid_cards = self._rule.get_valid_cards_from_state(state)
 
-        node = self.search_tree.get_best_node_from_simulation(valid_cards, state)
+
+        node = self.search_tree.get_best_node_from_simulation()
         start_time = time.time()
         while time.time() - start_time <= self.simulation_time:
-            node = self.search_tree.get_best_node_from_simulation(valid_cards, state)
+            node = self.search_tree.get_best_node_from_simulation()
 
         card = node.card
         self._logger.info('Played card: {}'.format(card_strings[card]))
