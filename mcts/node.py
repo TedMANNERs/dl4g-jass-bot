@@ -12,6 +12,9 @@ class Node:
         self.accumulated_payoff = 0
         self.ucb = 0
 
+        if self.parent is not None:
+            self.parent.children.append(self)
+
     def get_path(self):
         path = [self]
         node = self
@@ -20,20 +23,20 @@ class Node:
             path.append(node)
         return path
 
-    def calculate_payoff(self):
+    def calculate_payoff(self, sim_game_state: GameState):
         MAX_POINTS = 157
-        my_team_points = self._get_team_points()
+        my_team_points = self._get_team_points(sim_game_state)
         # normalize points since mcts expects payoffs between 1 and 0
         normalized_points = my_team_points / MAX_POINTS
         self.accumulated_payoff = normalized_points
 
-    def update_wins(self):
-        my_team_points = self._get_team_points()
-        if my_team_points >= 79:
+    def update_wins(self, sim_game_state: GameState):
+        my_team_points = self._get_team_points(sim_game_state)
+        if my_team_points >= 79:  # More than half of the points
             self.wins += 1
 
-    def _get_team_points(self):
+    def _get_team_points(self, sim_game_state: GameState):
         team_index = 0
-        if self.game_state.player % 2 != 0:  # Player 0 and 2
+        if sim_game_state.player % 2 != 0:  # Player 0 and 2
             team_index = 1
-        return self.game_state.points[team_index]
+        return sim_game_state.points[team_index]

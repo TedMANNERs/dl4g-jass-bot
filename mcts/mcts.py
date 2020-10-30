@@ -22,17 +22,18 @@ class MonteCarloTreeSearch:
         self._backpropagate(expanded_node)
 
         # return node with the highest payoff
-        return max(c.accumulated_payoff for c in self.root.children)
+        return self.root.children[np.argmax([c.accumulated_payoff for c in self.root.children])]
 
     def _select_next_node(self):
         node = self.root
-        while len(node.children) > 0 or not node.isExpanded:
+        while len(node.children) > 0 and not node.isExpanded:
             node = self.get_next_ucb1_child(node)
         return node
 
     def _expand_node(self, node: Node):
-        if self.is_round_finished(node):
-            child_node = self._play_single_turn(node)
+        if self.is_round_finished(node.game_state):
+            new_game_state = self._play_single_turn(node.game_state)
+            child_node = Node(new_game_state, node)
             node.isExpanded = True
             return child_node
         else:
@@ -40,40 +41,33 @@ class MonteCarloTreeSearch:
 
     def _simulate(self, leaf_node: Node):
         # nr_played_cards = len(leaf_node.get_path())
-        current_node = leaf_node
-        while self.is_round_finished(current_node):
+        sim_game_state = leaf_node.game_state
+        while self.is_round_finished(sim_game_state):
             # play a card
-            new_child_node = self._play_single_turn(current_node)
-            current_node = new_child_node
+            sim_game_state = self._play_single_turn(sim_game_state)
 
-        current_node.calculate_payoff()
-        current_node.update_wins()
-        return current_node
+        leaf_node.calculate_payoff(sim_game_state)
+        leaf_node.update_wins(sim_game_state)
+        return leaf_node
 
     def _backpropagate(self, node: Node):
         current_node = node
-        current_node.visit_count += 1
         while current_node.parent is not None:
             current_node.parent.accumulated_payoff += current_node.accumulated_payoff
             current_node = current_node.parent
+            current_node.visit_count += 1
+        current_node.visit_count += 1
 
-    def _play_single_turn(self, node: Node):
+    def _play_single_turn(self, game_state: GameState):
         simulation = GameSim(self._rule)
-        simulation.init_from_state(node.game_state)
+        simulation.init_from_state(game_state)
 
-        # Play a card from all players valid cards, since we play for them too
-        possible_cards = self._get_valid_cards_from_all_hands(node.game_state)
-        random_valid_card = np.random.choice(possible_cards, 1)  # TODO: Use rules here?
+        # Get valid cards of players hand
+        all_valid_cards = self._rule.get_valid_cards_from_state(game_state)
+        valid_cards = all_valid_cards * game_state.hands[game_state.player]
+        random_valid_card = np.random.choice(np.flatnonzero(valid_cards))  # TODO: Use rules here?
         simulation.action_play_card(random_valid_card)
-        child_node = Node(simulation.state, node)  # TODO: Is a new node always needed, what if we revisit it?
-        node.children.append(child_node)
-        return child_node
-
-    def _get_valid_cards_from_all_hands(self, state: GameState):
-        return self._rule.get_valid_cards(hand=np.sum(state.hands, axis=0),
-                                          current_trick=state.current_trick,
-                                          move_nr=state.nr_cards_in_trick,
-                                          trump=state.trump)
+        return simulation.state
 
     def get_next_ucb1_child(self, node: Node):
         if node.visit_count == 0:
@@ -87,5 +81,5 @@ class MonteCarloTreeSearch:
                 max_ucb_child = child
         return max_ucb_child
 
-    def is_round_finished(self, node: Node):
-        return node.game_state.nr_played_cards < 36
+    def is_round_finished(self, game_state: GameState):
+        return game_state.nr_played_cards < 36
