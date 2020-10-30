@@ -26,15 +26,14 @@ class MonteCarloTreeSearch:
 
     def _select_next_node(self):
         node = self.root
-        while len(node.children) > 0 and not node.isExpanded:
-            node = self.get_next_ucb1_child(node)
+        while len(node.children) > 0:
+            node = self._get_next_ucb1_child(node)
         return node
 
     def _expand_node(self, node: Node):
-        if self.is_round_finished(node.game_state):
+        if self._is_round_finished(node.game_state):
             new_game_state = self._play_single_turn(node.game_state)
             child_node = Node(new_game_state, node)
-            node.isExpanded = True
             return child_node
         else:
             return node
@@ -42,7 +41,7 @@ class MonteCarloTreeSearch:
     def _simulate(self, leaf_node: Node):
         # nr_played_cards = len(leaf_node.get_path())
         sim_game_state = leaf_node.game_state
-        while self.is_round_finished(sim_game_state):
+        while self._is_round_finished(sim_game_state):
             # play a card
             sim_game_state = self._play_single_turn(sim_game_state)
 
@@ -69,7 +68,7 @@ class MonteCarloTreeSearch:
         simulation.action_play_card(random_valid_card)
         return simulation.state
 
-    def get_next_ucb1_child(self, node: Node):
+    def _get_next_ucb1_child(self, node: Node):
         if node.visit_count == 0:
             node.visit_count = sys.maxsize
 
@@ -81,5 +80,5 @@ class MonteCarloTreeSearch:
                 max_ucb_child = child
         return max_ucb_child
 
-    def is_round_finished(self, game_state: GameState):
+    def _is_round_finished(self, game_state: GameState):
         return game_state.nr_played_cards < 36

@@ -239,6 +239,7 @@ class ArenaCheating:
                                                                           self.nr_games_played,
                                                                           self._nr_games_to_play))
             dealer = next_player[dealer]
+            print("played game")
         if self._save_games:
             self._file_generator.__exit__(None, None, None)
         sys.stdout.write('\n')
