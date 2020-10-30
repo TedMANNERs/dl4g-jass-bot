@@ -9,7 +9,7 @@ from typing import List
 
 import numpy as np
 
-from jass.agents.agent import Agent
+from jass.agents.agent import CheatingAgent
 from jass.arena.dealing_card_random_strategy import DealingCardRandomStrategy
 from jass.arena.dealing_card_strategy import DealingCardStrategy
 from jass.game.const import NORTH, EAST, SOUTH, WEST, DIAMONDS, MAX_TRUMP, PUSH, next_player
@@ -57,7 +57,7 @@ class ArenaCheating:
             self._dealing_card_strategy = dealing_card_strategy
 
         # the players
-        self._players: List[Agent or None] = [None, None, None, None]
+        self._players: List[CheatingAgent or None] = [None, None, None, None]
 
         # player ids to use in saved games (if written)
         self._player_ids: List[int] = [0, 0, 0, 0]
@@ -87,35 +87,35 @@ class ArenaCheating:
         # We define properties for the individual players to set/get them easily by name
 
     @property
-    def north(self) -> Agent:
+    def north(self) -> CheatingAgent:
         return self._players[NORTH]
 
     @north.setter
-    def north(self, player: Agent):
+    def north(self, player: CheatingAgent):
         self._players[NORTH] = player
 
     @property
-    def east(self) -> Agent:
+    def east(self) -> CheatingAgent:
         return self._players[EAST]
 
     @east.setter
-    def east(self, player: Agent):
+    def east(self, player: CheatingAgent):
         self._players[EAST] = player
 
     @property
-    def south(self) -> Agent:
+    def south(self) -> CheatingAgent:
         return self._players[SOUTH]
 
     @south.setter
-    def south(self, player: Agent):
+    def south(self, player: CheatingAgent):
         self._players[SOUTH] = player
 
     @property
-    def west(self) -> Agent:
+    def west(self) -> CheatingAgent:
         return self._players[WEST]
 
     @west.setter
-    def west(self, player: Agent):
+    def west(self, player: CheatingAgent):
         self._players[WEST] = player
 
     @property
@@ -144,7 +144,7 @@ class ArenaCheating:
         """
         return self._game.get_observation()
 
-    def set_players(self, north: Agent, east: Agent, south: Agent, west: Agent,
+    def set_players(self, north: CheatingAgent, east: CheatingAgent, south: CheatingAgent, west: CheatingAgent,
                     north_id=0, east_id=0, south_id=0, west_id=0) -> None:
         """
         Set the players.
@@ -167,6 +167,11 @@ class ArenaCheating:
         self._player_ids[SOUTH] = south_id
         self._player_ids[WEST] = west_id
 
+        north.player = NORTH
+        east.player = EAST
+        south.player = SOUTH
+        west.player = WEST
+
     def play_game(self, dealer: int) -> None:
         """
         Play a complete match (36 cards).
@@ -178,7 +183,7 @@ class ArenaCheating:
 
         # determine trump
         # ask first player
-        trump_action = self._players[self._game.state.player].action_trump(self._game.state())
+        trump_action = self._players[self._game.state.player].action_trump(self._game.state)
         if trump_action < DIAMONDS or (trump_action > MAX_TRUMP and trump_action != PUSH):
             self._logger.error('Illegal trump (' + str(trump_action) + ') selected')
             raise RuntimeError('Illegal trump (' + str(trump_action) + ') selected')

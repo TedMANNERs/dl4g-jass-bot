@@ -9,8 +9,8 @@ def main():
 
     # setup the arena
     arena = ArenaCheating(nr_games_to_play=1000, save_filename='arena_games')
-    player = AgentCheatingMonteCarlo()
-    my_player = AgentCheatingMonteCarlo()
+    player = AgentCheatingMonteCarlo(2)
+    my_player = AgentCheatingMonteCarlo(2)
 
     arena.set_players(my_player, player, my_player, player)
     print('Playing {} games'.format(arena.nr_games_to_play))

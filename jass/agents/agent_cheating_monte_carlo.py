@@ -14,6 +14,7 @@ class AgentCheatingMonteCarlo (CheatingAgent):
     Agent to act as a player in a match of jass.
     """
     def __init__(self, simulation_time):
+        super().__init__()
         self.simulation_time = simulation_time
         # log actions
         self._logger = logging.getLogger(__name__)
@@ -53,6 +54,6 @@ class AgentCheatingMonteCarlo (CheatingAgent):
             node = search_tree.get_best_node_from_simulation()
 
         # get unique card between current and next trick
-        card = list(set(node.game_state.current_trick) - set(state.current_trick))
+        card = list(set(node.game_state.current_trick) - set(state.current_trick))[0]
         self._logger.info('Played card: {}'.format(card_strings[card]))
         return card

@@ -2,7 +2,9 @@ import numpy as np
 from jass.game.game_state import GameState
 from jass.game.rule_schieber import RuleSchieber
 from jass.game.game_sim import GameSim
+from jass.game.const import *
 from mcts.node import Node
+import sys
 
 
 class MonteCarloTreeSearch:
@@ -24,13 +26,14 @@ class MonteCarloTreeSearch:
 
     def _select_next_node(self):
         node = self.root
-        while len(node.children) > 0:
+        while len(node.children) > 0 or not node.isExpanded:
             node = self.get_next_ucb1_child(node)
         return node
 
     def _expand_node(self, node: Node):
-        if self.isGameFinished(node):
+        if self.is_round_finished(node):
             child_node = self._play_single_turn(node)
+            node.isExpanded = True
             return child_node
         else:
             return node
@@ -38,7 +41,7 @@ class MonteCarloTreeSearch:
     def _simulate(self, leaf_node: Node):
         # nr_played_cards = len(leaf_node.get_path())
         current_node = leaf_node
-        while self.isGameFinished(current_node):
+        while self.is_round_finished(current_node):
             # play a card
             new_child_node = self._play_single_turn(current_node)
             current_node = new_child_node
@@ -48,8 +51,11 @@ class MonteCarloTreeSearch:
         return current_node
 
     def _backpropagate(self, node: Node):
-        while node.parent is not None:
-            node.parent.accumulated_payoff += node.accumulated_payoff
+        current_node = node
+        current_node.visit_count += 1
+        while current_node.parent is not None:
+            current_node.parent.accumulated_payoff += current_node.accumulated_payoff
+            current_node = current_node.parent
 
     def _play_single_turn(self, node: Node):
         simulation = GameSim(self._rule)
@@ -70,14 +76,16 @@ class MonteCarloTreeSearch:
                                           trump=state.trump)
 
     def get_next_ucb1_child(self, node: Node):
+        if node.visit_count == 0:
+            node.visit_count = sys.maxsize
+
         max_ucb_child = node
         for child in node.children:
             exploration = self._exploration_weight * np.sqrt(np.log(self.root.visit_count) / node.visit_count)
             child.ucb = node.wins / node.visit_count + exploration
             if child.ucb > max_ucb_child.ucb:
                 max_ucb_child = child
-                max_ucb_child.visit_count += 1
         return max_ucb_child
 
-    def isGameFinished(self, node: Node):
+    def is_round_finished(self, node: Node):
         return node.game_state.nr_played_cards < 36
