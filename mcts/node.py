@@ -21,9 +21,11 @@ class Node:
         return path
 
     def calculate_payoff(self):
-        points = self.game_state.points
-        if points >= 79: # More than half of all possible points
-            self.accumulated_payoff = 1
+        MAX_POINTS = 157
+        # normalize points since mcts expects payoffs between 1 and 0
+        normalized_points = self.game_state.points / MAX_POINTS
+        self.accumulated_payoff = normalized_points
+
+    def update_wins(self):
+        if self.game_state.points >= 79:
             self.wins += 1
-        else:
-            self.accumulated_payoff = 0

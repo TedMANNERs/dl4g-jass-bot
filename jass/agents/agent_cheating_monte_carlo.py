@@ -5,7 +5,7 @@ from jass.agents.agent import CheatingAgent
 from jass.game.game_state import GameState
 from jass.game.rule_schieber import RuleSchieber
 from jass.game.const import *
-from mcts.search import MonteCarloTreeSearch
+from mcts.mcts import MonteCarloTreeSearch
 from jass.agent_actions.actions import *
 
 
@@ -21,7 +21,6 @@ class AgentCheatingMonteCarlo (CheatingAgent):
         self._rule = RuleSchieber()
         # init random number generator
         self._rng = np.random.default_rng()
-        self.search_tree = None
 
     def action_trump(self, state: GameState) -> int:
         """
@@ -47,15 +46,13 @@ class AgentCheatingMonteCarlo (CheatingAgent):
         Returns:
             the card to play, int encoded as defined in jass.match.const
         """
-        self.search_tree = MonteCarloTreeSearch(state, _rule)
-
-
-
-        node = self.search_tree.get_best_node_from_simulation()
+        search_tree = MonteCarloTreeSearch(state, self._rule)
+        node = search_tree.get_best_node_from_simulation()
         start_time = time.time()
         while time.time() - start_time <= self.simulation_time:
-            node = self.search_tree.get_best_node_from_simulation()
+            node = search_tree.get_best_node_from_simulation()
 
-        card = node.card
+        # get unique card between current and next trick
+        card = list(set(node.game_state.current_trick) - set(state.current_trick))
         self._logger.info('Played card: {}'.format(card_strings[card]))
         return card
