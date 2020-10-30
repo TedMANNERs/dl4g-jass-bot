@@ -26,16 +26,16 @@ class MonteCarloTreeSearch:
 
     def _select_next_node(self):
         node = self.root
-        while len(node.children) > 0:  # TODO: Check if node is fully expanded?
+        while node.isExpanded:  # TODO: Check if node is fully expanded?
             node = self._get_next_ucb1_child(node)
         return node
 
-    # TODO: Expand fully, meaning all possible children
     def _expand_node(self, node: Node):
         if self._is_round_finished(node.game_state):
-            new_game_state = self._play_single_turn(node.game_state)
-            child_node = Node(new_game_state, node)
-            return child_node
+            new_game_states = self._play_all_possible_turns(node.game_state)
+            child_nodes = [Node(state, node) for state in new_game_states]
+            node.isExpanded = True
+            return np.random.choice(child_nodes)  # Choose random child state TODO: Use rules here?
         else:
             return node
 
@@ -68,6 +68,20 @@ class MonteCarloTreeSearch:
         random_valid_card = np.random.choice(np.flatnonzero(valid_cards))  # TODO: Use rules here?
         simulation.action_play_card(random_valid_card)
         return simulation.state
+
+    def _play_all_possible_turns(self, game_state: GameState):
+        # Get valid cards of players hand
+        all_valid_cards = self._rule.get_valid_cards_from_state(game_state)
+        valid_cards = all_valid_cards * game_state.hands[game_state.player]
+
+        new_game_states = []
+        for card in np.flatnonzero(valid_cards):
+            simulation = GameSim(self._rule)
+            simulation.init_from_state(game_state)
+            simulation.action_play_card(card)
+            new_game_states.append(simulation.state)
+
+        return new_game_states
 
     def _get_next_ucb1_child(self, node: Node):
         max_ucb_child = node
