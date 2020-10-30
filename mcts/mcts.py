@@ -26,10 +26,11 @@ class MonteCarloTreeSearch:
 
     def _select_next_node(self):
         node = self.root
-        while len(node.children) > 0:
+        while len(node.children) > 0:  # TODO: Check if node is fully expanded?
             node = self._get_next_ucb1_child(node)
         return node
 
+    # TODO: Expand fully, meaning all possible children
     def _expand_node(self, node: Node):
         if self._is_round_finished(node.game_state):
             new_game_state = self._play_single_turn(node.game_state)
@@ -69,9 +70,6 @@ class MonteCarloTreeSearch:
         return simulation.state
 
     def _get_next_ucb1_child(self, node: Node):
-        if node.visit_count == 0:
-            node.visit_count = sys.maxsize
-
         max_ucb_child = node
         for child in node.children:
             exploration = self._exploration_weight * np.sqrt(np.log(self.root.visit_count) / node.visit_count)

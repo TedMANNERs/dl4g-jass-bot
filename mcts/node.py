@@ -7,7 +7,7 @@ class Node:
         self.parent = parent
         self.children = []
         self.isExpanded = False
-        self.visit_count = 0
+        self.visit_count = 1
         self.wins = 0
         self.accumulated_payoff = 0
         self.ucb = 0
