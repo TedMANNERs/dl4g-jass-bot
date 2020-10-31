@@ -5,9 +5,9 @@ from jass.agents.agent import CheatingAgent
 from jass.game.game_state import GameState
 from jass.game.rule_schieber import RuleSchieber
 from jass.game.const import *
-from mcts.mcts import MonteCarloTreeSearch
+from mcts.cheating_mcts import MonteCarloTreeSearch
 from jass.agent_actions.actions import *
-from mcts.turn_action import HeuristicTurnAction
+from mcts.cheating_turn_action import HeuristicTurnAction
 
 
 class AgentCheatingMonteCarlo (CheatingAgent):
