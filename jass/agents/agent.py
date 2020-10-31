@@ -35,8 +35,6 @@ class Agent:
 
 
 class CheatingAgent:
-    def __init__(self):
-        self.player = None
     """
     Agent to act as a player in a match of jass.
     """

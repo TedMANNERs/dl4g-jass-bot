@@ -1,5 +1,8 @@
 import numpy as np
 from jass.game.const import *
+from jass.game.game_state import GameState
+from jass.game.rule_schieber import GameRule
+from jass.game.game_observation import GameObservation
 
 
 def select_trump(hand, forehand):
@@ -80,3 +83,53 @@ def get_higher_non_trump_cards(non_trump_cards, current_trick):
             higher_non_trump_cards[index] = value
 
     return higher_non_trump_cards
+
+
+def get_best_card_using_simple_rules_from_state(state: GameState, rule: GameRule):
+    valid_cards = rule.get_valid_cards_from_state(state)
+    return get_best_card_using_simple_rules(valid_cards, state.trump, state.current_trick, state.nr_cards_in_trick)
+
+
+def get_best_card_using_simple_rules_from_obs(obs: GameObservation, rule: GameRule):
+    valid_cards = rule.get_valid_cards_from_obs(obs)
+    return get_best_card_using_simple_rules(valid_cards, obs.trump, obs.current_trick, obs.nr_cards_in_trick)
+
+
+def get_best_card_using_simple_rules(valid_cards, trump, current_trick, nr_cards_in_trick):
+    current_trick = resize_to_card_array(current_trick)
+    current_trick_points = sum(current_trick * card_values[trump])
+
+    # Simple rules for UNE_UFE and OBE_ABE
+    if trump == UNE_UFE:
+        return get_lowest_card(valid_cards)
+    elif trump == OBE_ABE:
+        return get_highest_card(valid_cards)
+
+    # Now handling trumps
+    valid_cards_contain_any_trump = (valid_cards * color_masks[trump]).any()
+    # Am I the first player?
+    if nr_cards_in_trick == 0 and valid_cards_contain_any_trump:
+        return get_highest_trump_card(valid_cards, trump)
+
+    # Start off with the worst cards if not the first player in a trick
+    play_card = get_lowest_card(valid_cards)
+
+    trick_trump_cards = current_trick * color_masks[trump]
+    non_trump_cards = valid_cards * (np.ones([36]) - color_masks[trump])
+
+    if not trick_trump_cards.any():
+        higher_non_trump_cards = get_higher_non_trump_cards(non_trump_cards, current_trick)
+        if higher_non_trump_cards.any():
+            play_card = get_highest_card(valid_cards)
+            if current_trick_points > 8 and valid_cards_contain_any_trump:
+                play_card = get_lowest_trump_card(valid_cards, trump)
+    elif current_trick_points > 10 and valid_cards_contain_any_trump:
+        play_card = get_lowest_trump_card(valid_cards, trump)
+    return play_card
+
+
+def resize_to_card_array(card_indexes):
+    cards = np.zeros([36])
+    for card_index in card_indexes:
+        cards[card_index] = 1
+    return cards

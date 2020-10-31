@@ -7,10 +7,10 @@ from jass.game.rule_schieber import RuleSchieber
 from jass.game.const import *
 from mcts.mcts import MonteCarloTreeSearch
 from jass.agent_actions.actions import *
-from mcts.turn_action import HeuristicTurnAction
+from mcts.turn_action import RandomTurnAction
 
 
-class AgentCheatingMonteCarlo (CheatingAgent):
+class AgentCheatingMonteCarloRandom (CheatingAgent):
     """
     Agent to act as a player in a match of jass.
     """
@@ -47,7 +47,7 @@ class AgentCheatingMonteCarlo (CheatingAgent):
         Returns:
             the card to play, int encoded as defined in jass.match.const
         """
-        search_tree = MonteCarloTreeSearch(state, self._rule, HeuristicTurnAction())
+        search_tree = MonteCarloTreeSearch(state, self._rule, RandomTurnAction())
         node = search_tree.get_best_node_from_simulation()
         start_time = time.time()
         while time.time() - start_time <= self.simulation_time:
