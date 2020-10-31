@@ -32,8 +32,8 @@ class MonteCarloTreeSearch:
 
     def _expand_node(self, node: Node):
         if self._is_round_finished(node.game_state):
-            new_game_states = self._play_all_possible_turns(node.game_state)
-            child_nodes = [Node(state, node) for state in new_game_states]
+            turns = self._play_all_possible_turns(node.game_state)
+            child_nodes = [Node(turn[0], node, turn[1]) for turn in turns]
             node.isExpanded = True
             return np.random.choice(child_nodes)  # Choose random child state TODO: Use rules here?
         else:
@@ -74,22 +74,25 @@ class MonteCarloTreeSearch:
         all_valid_cards = self._rule.get_valid_cards_from_state(game_state)
         valid_cards = all_valid_cards * game_state.hands[game_state.player]
 
-        new_game_states = []
+        turns = []
         for card in np.flatnonzero(valid_cards):
             simulation = GameSim(self._rule)
             simulation.init_from_state(game_state)
             simulation.action_play_card(card)
-            new_game_states.append(simulation.state)
+            turns.append([simulation.state, card])
 
-        return new_game_states
+        return turns
 
     def _get_next_ucb1_child(self, node: Node):
+        max_ucb = 0
         max_ucb_child = node
         for child in node.children:
             exploration = self._exploration_weight * np.sqrt(np.log(self.root.visit_count) / node.visit_count)
-            child.ucb = node.wins / node.visit_count + exploration
-            if child.ucb > max_ucb_child.ucb:
+            child_ucb = node.wins / node.visit_count + exploration
+            if child_ucb > max_ucb:
+                max_ucb = child_ucb
                 max_ucb_child = child
+
         return max_ucb_child
 
     def _is_round_finished(self, game_state: GameState):

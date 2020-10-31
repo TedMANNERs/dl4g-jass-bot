@@ -53,7 +53,6 @@ class AgentCheatingMonteCarlo (CheatingAgent):
         while time.time() - start_time <= self.simulation_time:
             node = search_tree.get_best_node_from_simulation()
 
-        # get unique card between current and next trick
-        card = list(set(node.game_state.current_trick) - set(state.current_trick))[0]
+        card = node.card
         self._logger.info('Played card: {}'.format(card_strings[card]))
         return card

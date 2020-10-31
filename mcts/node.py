@@ -2,15 +2,15 @@ from jass.game.game_state import GameState
 
 
 class Node:
-    def __init__(self, game_state: GameState, parent=None):
+    def __init__(self, game_state: GameState, parent=None, card=None):
         self.game_state = game_state
         self.parent = parent
         self.children = []
+        self.card = card
         self.isExpanded = False
         self.visit_count = 1
         self.wins = 0
         self.accumulated_payoff = 0
-        self.ucb = 0
 
         if self.parent is not None:
             self.parent.children.append(self)

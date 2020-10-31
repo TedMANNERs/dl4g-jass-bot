@@ -8,11 +8,13 @@ def main():
     logging.basicConfig(level=logging.WARNING)
 
     # setup the arena
-    arena = ArenaCheating(nr_games_to_play=1000, save_filename='arena_games')
-    player = AgentCheatingMonteCarlo(2)
-    my_player = AgentCheatingMonteCarlo(2)
+    arena = ArenaCheating(nr_games_to_play=1, save_filename='arena_games')
+    north = AgentCheatingMonteCarlo(0.5)  # Team 0
+    south = AgentCheatingMonteCarlo(0.5)  # Team 0
+    east = AgentCheatingMonteCarlo(0.5)  # Team 1
+    west = AgentCheatingMonteCarlo(0.5)  # Team 1
 
-    arena.set_players(my_player, player, my_player, player)
+    arena.set_players(north, east, south, west)
     print('Playing {} games'.format(arena.nr_games_to_play))
     arena.play_all_games()
     print('Average Points Team 0: {:.2f})'.format(arena.points_team_0.mean()))
