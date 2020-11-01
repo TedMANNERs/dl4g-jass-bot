@@ -10,7 +10,7 @@ from jass.agent_actions.actions import *
 from mcts.turn_action import HeuristicTurnAction
 
 
-class AgentMonteCarlo (Agent):
+class AgentMonteCarlo(Agent):
     """
     Agent to act as a player in a match of jass.
     """

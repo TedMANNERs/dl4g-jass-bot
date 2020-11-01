@@ -18,7 +18,7 @@ class MonteCarloTreeSearch:
     def get_best_node_from_simulation(self):
         hands = self._sample()
         selected_node = self._select_next_node()
-        expanded_node = self._expand_node(selected_node)
+        expanded_node = self._expand_node(selected_node, hands)
         if not expanded_node == selected_node:
             # Game has not ended ended so we need to simulate
             expanded_node = self._simulate(expanded_node, hands)
@@ -27,14 +27,17 @@ class MonteCarloTreeSearch:
         # return node with the highest payoff
         return self.root.children[np.argmax([c.accumulated_payoff for c in self.root.children])]
 
-
     def _sample(self):
         # calculate which cards are still in the hands of players
-        played_cards = np.concatenate([t for t in self.root.obs.tricks])
-        cards_in_play = np.ones(36)
+        pre_hack_played_cards = np.concatenate([t for t in self.root.obs.tricks])
+        # use ugly hack because tricks contain -1 for unplayed cards
+        played_cards = pre_hack_played_cards[pre_hack_played_cards != -1]
+
+        unplayed_cards = np.ones(36)
         for c in played_cards:
-            cards_in_play[c] = 0
-        other_player_cards = cards_in_play - self.root.obs.current_trick - self.root.obs.hand
+            unplayed_cards[c] = 0
+
+        other_player_cards = unplayed_cards - self.root.obs.hand
 
         hands = np.zeros(shape=[4, 36])
         for player in range(MAX_PLAYER + 1):
@@ -47,7 +50,7 @@ class MonteCarloTreeSearch:
 
     def _get_random_hand(self, other_player_cards, player):
         # use ugly hack because current_trick contains -1 for unplayed cards
-        current_trick_cards = np.flatnonzero(self.root.obs.current_trick + 1) - 1
+        current_trick_cards = self.root.obs.current_trick[self.root.obs.current_trick != -1]
         nr_of_previous_players_with_less_cards = len(current_trick_cards)
 
         previous_player = [1, 2, 3, 0]
@@ -65,7 +68,7 @@ class MonteCarloTreeSearch:
 
         # Choose random cards from other_player_cards
         hand_to_receive = np.zeros(36)
-        cards_to_receive = np.random.choice(np.flatnonzero(other_player_cards), nr_of_cards_to_receive)
+        cards_to_receive = np.random.choice(np.flatnonzero(other_player_cards), nr_of_cards_to_receive, replace=False)
         for card in cards_to_receive:
             hand_to_receive[card] = 1
             # remove the cards from other_player_cards so the next player cannot receive the same cards
@@ -79,9 +82,9 @@ class MonteCarloTreeSearch:
             node = self._get_next_ucb1_child(node)
         return node
 
-    def _expand_node(self, node: Node):
+    def _expand_node(self, node: Node, hands):
         if self._is_round_finished(node.obs):
-            turns = self._play_all_possible_turns(node.obs)
+            turns = self._play_all_possible_turns(node.obs, hands)
             child_nodes = [Node(turn[0], node, turn[1]) for turn in turns]
             node.isExpanded = True
             return np.random.choice(child_nodes)  # Choose random child state TODO: Use rules here?
@@ -90,13 +93,13 @@ class MonteCarloTreeSearch:
 
     def _simulate(self, leaf_node: Node, hands):
         # nr_played_cards = len(leaf_node.get_path())
-        sim_obs = leaf_node.obs
-        while self._is_round_finished(sim_obs):
+        sim_state = leaf_node.obs
+        while self._is_round_finished(sim_state):
             # play a card
-            sim_obs = self._turn_action.play_single_turn(hands, sim_obs, self._rule)
+            sim_state = self._turn_action.play_single_turn(hands, sim_state, self._rule)
 
-        leaf_node.calculate_payoff(sim_obs)
-        leaf_node.update_wins(sim_obs)
+        leaf_node.calculate_payoff(sim_state)
+        leaf_node.update_wins(sim_state)
         return leaf_node
 
     def _backpropagate(self, node: Node):
@@ -107,14 +110,14 @@ class MonteCarloTreeSearch:
             current_node.visit_count += 1
         current_node.visit_count += 1
 
-    def _play_all_possible_turns(self, obs: GameObservation):
+    def _play_all_possible_turns(self, obs: GameObservation, hands):
         # Get valid cards of players hand
         valid_cards = self._rule.get_valid_cards_from_obs(obs)
 
         turns = []
         for card in np.flatnonzero(valid_cards):
             simulation = GameSim(self._rule)
-            simulation.init_from_state(obs)
+            simulation.init_from_cards(hands, obs.dealer)
             simulation.action_play_card(card)
             turns.append([simulation.state, card])
 
