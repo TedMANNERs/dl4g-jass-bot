@@ -1,11 +1,8 @@
-from typing import List
-
-from jass.game.game_state import GameState
-
-
+# Node = information set
 class Node:
-    def __init__(self, states: List[GameState] = None, parent=None, card=None):
-        self.states = states
+    def __init__(self, my_hand, hand_sizes, parent=None, card=None):
+        self.my_hand = my_hand
+        self.hand_sizes = hand_sizes
         self.parent = parent
         self.children = []
         self.card = card
@@ -25,20 +22,20 @@ class Node:
             path.append(node)
         return path
 
-    def calculate_payoff(self, sim_state: GameState):
+    def calculate_payoff(self, player, points):
         MAX_POINTS = 157
-        my_team_points = self._get_team_points(sim_state)
+        my_team_points = self._get_team_points(player, points)
         # normalize points since mcts expects payoffs between 1 and 0
         normalized_points = my_team_points / MAX_POINTS
         self.accumulated_payoff = normalized_points
 
-    def update_wins(self, sim_state: GameState):
-        my_team_points = self._get_team_points(sim_state)
+    def update_wins(self, player, points):
+        my_team_points = self._get_team_points(player, points)
         if my_team_points >= 79:  # More than half of the points
             self.wins += 1
 
-    def _get_team_points(self, sim_state: GameState):
+    def _get_team_points(self, player, points):
         team_index = 0
-        if sim_state.player % 2 != 0:  # Player 0 and 2
+        if player % 2 != 0:  # Player 0 and 2
             team_index = 1
-        return sim_state.points[team_index]
+        return points[team_index]

@@ -8,16 +8,7 @@ class Sampler:
         self.obs = obs
 
     def get_random_sample(self):
-        # calculate which cards are still in the hands of players
-        pre_hack_played_cards = np.concatenate([t for t in self.obs.tricks])
-        # use ugly hack because tricks contain -1 for unplayed cards
-        played_cards = pre_hack_played_cards[pre_hack_played_cards != -1]
-
-        unplayed_cards = np.ones(36)
-        for c in played_cards:
-            unplayed_cards[c] = 0
-
-        other_player_cards = unplayed_cards - self.obs.hand
+        other_player_cards = self._get_other_player_cards()
 
         hands = np.zeros(shape=[4, 36])
         for player in range(MAX_PLAYER + 1):
@@ -28,8 +19,16 @@ class Sampler:
         print(other_player_cards)
         return hands
 
-    def get_all_samples(self):
-        raise NotImplementedError
+    def _get_other_player_cards(self):
+        # calculate which cards are still in the hands of players
+        pre_hack_played_cards = np.concatenate([t for t in self.obs.tricks])
+        # use ugly hack because tricks contain -1 for unplayed cards
+        played_cards = pre_hack_played_cards[pre_hack_played_cards != -1]
+        unplayed_cards = np.ones(36)
+        for c in played_cards:
+            unplayed_cards[c] = 0
+        other_player_cards = unplayed_cards - self.obs.hand
+        return other_player_cards
 
     def _get_random_hand(self, other_player_cards, player):
         # use ugly hack because current_trick contains -1 for unplayed cards
@@ -58,3 +57,11 @@ class Sampler:
             other_player_cards[card] = 0
 
         return hand_to_receive, other_player_cards
+
+    def get_hand_sizes(self):
+        hands = self.get_random_sample()
+        hand_sizes = []
+        for hand in hands:
+            cards = np.flatnonzero(hand)
+            hand_sizes.append(len(cards))
+        return hand_sizes
