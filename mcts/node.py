@@ -1,9 +1,11 @@
+from typing import List
+
 from jass.game.game_state import GameState
 
 
 class Node:
-    def __init__(self, state: GameState = None, parent=None, card=None):
-        self.state = state
+    def __init__(self, states: List[GameState] = None, parent=None, card=None):
+        self.states = states
         self.parent = parent
         self.children = []
         self.card = card
