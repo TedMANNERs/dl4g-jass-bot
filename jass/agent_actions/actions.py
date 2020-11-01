@@ -15,6 +15,7 @@ def select_trump(hand, forehand):
             return PUSH
     return trump_card_sums.index(highest)
 
+
 def get_trump_card_sums(hand):
     card_indexes = [index for index, value in enumerate(hand) if value == 1]
 

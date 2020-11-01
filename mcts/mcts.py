@@ -1,6 +1,7 @@
 import numpy as np
 
 from jass.game.game_observation import GameObservation
+from jass.game.game_state import GameState
 from jass.game.rule_schieber import RuleSchieber
 from jass.game.game_sim import GameSim
 from jass.game.const import *
@@ -10,7 +11,8 @@ from mcts.turn_action import TurnAction
 
 class MonteCarloTreeSearch:
     def __init__(self, obs: GameObservation, rule: RuleSchieber, turn_action: TurnAction):
-        self.root = Node(obs)
+        self.obs = obs
+        self.root = Node()
         self._rule = rule
         self._turn_action = turn_action
         self._exploration_weight = 1
@@ -29,7 +31,7 @@ class MonteCarloTreeSearch:
 
     def _sample(self):
         # calculate which cards are still in the hands of players
-        pre_hack_played_cards = np.concatenate([t for t in self.root.obs.tricks])
+        pre_hack_played_cards = np.concatenate([t for t in self.obs.tricks])
         # use ugly hack because tricks contain -1 for unplayed cards
         played_cards = pre_hack_played_cards[pre_hack_played_cards != -1]
 
@@ -37,12 +39,12 @@ class MonteCarloTreeSearch:
         for c in played_cards:
             unplayed_cards[c] = 0
 
-        other_player_cards = unplayed_cards - self.root.obs.hand
+        other_player_cards = unplayed_cards - self.obs.hand
 
         hands = np.zeros(shape=[4, 36])
         for player in range(MAX_PLAYER + 1):
-            if player == self.root.obs.player:
-                hands[player] = self.root.obs.hand
+            if player == self.obs.player:
+                hands[player] = self.obs.hand
             else:
                 hands[player], other_player_cards = self._get_random_hand(other_player_cards, player)
         print(other_player_cards)
@@ -50,16 +52,16 @@ class MonteCarloTreeSearch:
 
     def _get_random_hand(self, other_player_cards, player):
         # use ugly hack because current_trick contains -1 for unplayed cards
-        current_trick_cards = self.root.obs.current_trick[self.root.obs.current_trick != -1]
+        current_trick_cards = self.obs.current_trick[self.obs.current_trick != -1]
         nr_of_previous_players_with_less_cards = len(current_trick_cards)
 
         previous_player = [1, 2, 3, 0]
 
         # all players ahead of us receive the same number of cards
-        nr_of_cards_to_receive = len(np.flatnonzero(self.root.obs.hand))
+        nr_of_cards_to_receive = len(np.flatnonzero(self.obs.hand))
 
         # all previous players receive one less
-        previous_p = self.root.obs.player
+        previous_p = self.obs.player
         for x in range(nr_of_previous_players_with_less_cards):
             previous_p = previous_player[previous_p]
             if previous_p == player:
@@ -83,8 +85,14 @@ class MonteCarloTreeSearch:
         return node
 
     def _expand_node(self, node: Node, hands):
-        if self._is_round_finished(node.obs):
-            turns = self._play_all_possible_turns(node.obs, hands)
+        if node.state is None:
+            root_sim = GameSim(self._rule)
+            root_sim.init_from_cards(hands, self.obs.dealer)
+            root_sim.state.trump = self.obs.trump
+            node.state = root_sim.state
+
+        if self._is_round_finished(node.state):
+            turns = self._play_all_possible_turns(node.state, hands)
             child_nodes = [Node(turn[0], node, turn[1]) for turn in turns]
             node.isExpanded = True
             return np.random.choice(child_nodes)  # Choose random child state TODO: Use rules here?
@@ -93,7 +101,7 @@ class MonteCarloTreeSearch:
 
     def _simulate(self, leaf_node: Node, hands):
         # nr_played_cards = len(leaf_node.get_path())
-        sim_state = leaf_node.obs
+        sim_state = leaf_node.state
         while self._is_round_finished(sim_state):
             # play a card
             sim_state = self._turn_action.play_single_turn(hands, sim_state, self._rule)
@@ -110,14 +118,14 @@ class MonteCarloTreeSearch:
             current_node.visit_count += 1
         current_node.visit_count += 1
 
-    def _play_all_possible_turns(self, obs: GameObservation, hands):
+    def _play_all_possible_turns(self, state: GameState, hands):
         # Get valid cards of players hand
-        valid_cards = self._rule.get_valid_cards_from_obs(obs)
+        valid_cards = self._rule.get_valid_cards_from_state(state)
 
         turns = []
         for card in np.flatnonzero(valid_cards):
             simulation = GameSim(self._rule)
-            simulation.init_from_cards(hands, obs.dealer)
+            simulation.init_from_state(state)
             simulation.action_play_card(card)
             turns.append([simulation.state, card])
 
@@ -135,5 +143,5 @@ class MonteCarloTreeSearch:
 
         return max_ucb_child
 
-    def _is_round_finished(self, obs: GameObservation):
-        return obs.nr_played_cards < 36
+    def _is_round_finished(self, state: GameState):
+        return state.nr_played_cards < 36

@@ -1,9 +1,9 @@
-from jass.game.game_observation import GameObservation
+from jass.game.game_state import GameState
 
 
 class Node:
-    def __init__(self, obs: GameObservation, parent=None, card=None):
-        self.obs = obs
+    def __init__(self, state: GameState = None, parent=None, card=None):
+        self.state = state
         self.parent = parent
         self.children = []
         self.card = card
@@ -23,20 +23,20 @@ class Node:
             path.append(node)
         return path
 
-    def calculate_payoff(self, sim_obs: GameObservation):
+    def calculate_payoff(self, sim_state: GameState):
         MAX_POINTS = 157
-        my_team_points = self._get_team_points(sim_obs)
+        my_team_points = self._get_team_points(sim_state)
         # normalize points since mcts expects payoffs between 1 and 0
         normalized_points = my_team_points / MAX_POINTS
         self.accumulated_payoff = normalized_points
 
-    def update_wins(self, sim_obs: GameObservation):
-        my_team_points = self._get_team_points(sim_obs)
+    def update_wins(self, sim_state: GameState):
+        my_team_points = self._get_team_points(sim_state)
         if my_team_points >= 79:  # More than half of the points
             self.wins += 1
 
-    def _get_team_points(self, sim_obs: GameObservation):
+    def _get_team_points(self, sim_state: GameState):
         team_index = 0
-        if sim_obs.player % 2 != 0:  # Player 0 and 2
+        if sim_state.player % 2 != 0:  # Player 0 and 2
             team_index = 1
-        return sim_obs.points[team_index]
+        return sim_state.points[team_index]
