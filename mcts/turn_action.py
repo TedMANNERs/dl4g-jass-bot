@@ -1,7 +1,7 @@
 from abc import ABC
 
 import numpy as np
-
+from jass.game.game_state_util import state_from_observation
 from jass.agent_actions.actions import get_best_card_using_simple_rules_from_obs
 from jass.game.game_observation import GameObservation
 from jass.game.game_rule import GameRule
@@ -16,8 +16,8 @@ class TurnAction(ABC):
 class RandomTurnAction(TurnAction):
     def play_single_turn(self, hands, obs: GameObservation, rule: GameRule) -> GameObservation:
         simulation = GameSim(rule)
-        simulation.init_from_cards(hands, obs.dealer)
-        simulation.state.trump = obs.trump
+        state = state_from_observation(obs, hands)
+        simulation.init_from_state(state)
 
         valid_cards = rule.get_valid_cards_from_obs(obs)
         random_valid_card = np.random.choice(np.flatnonzero(valid_cards))
@@ -28,8 +28,8 @@ class RandomTurnAction(TurnAction):
 class HeuristicTurnAction(TurnAction):
     def play_single_turn(self, hands, obs: GameObservation, rule: GameRule) -> GameObservation:
         simulation = GameSim(rule)
-        simulation.init_from_cards(hands)
-        simulation.state.trump = obs.trump
+        state = state_from_observation(obs, hands)
+        simulation.init_from_state(state)
 
         best_card = get_best_card_using_simple_rules_from_obs(obs, rule)
         simulation.action_play_card(best_card)

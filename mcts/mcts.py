@@ -2,6 +2,7 @@ import numpy as np
 
 from jass.game.game_observation import GameObservation
 from jass.game.game_state import GameState
+from jass.game.game_state_util import state_from_observation, observation_from_state
 from jass.game.rule_schieber import RuleSchieber
 from jass.game.game_sim import GameSim
 from jass.game.const import *
@@ -14,15 +15,15 @@ from mcts.turn_action import TurnAction
 class MonteCarloTreeSearch:
     def __init__(self, obs: GameObservation, rule: RuleSchieber, turn_action: TurnAction):
         self.obs = obs
-        self._sampler = Sampler(obs)
-        hand_sizes = self._sampler.get_hand_sizes()
+        self._sampler = Sampler()
+        hand_sizes = self._sampler.get_hand_sizes(self.obs)
         self.root = Node(obs.hand, hand_sizes)
         self._rule = rule
         self._turn_action = turn_action
         self._exploration_weight = 1
 
     def get_best_node_from_simulation(self):
-        hands = self._sampler.get_random_sample()
+        hands = self._sampler.get_random_sample(self.obs)
         selected_node = self._select_next_node()
         expanded_node = self._expand_node(selected_node, hands)
         if not expanded_node == selected_node:
@@ -42,21 +43,26 @@ class MonteCarloTreeSearch:
     def _expand_node(self, node: Node, hands):
         if self._is_round_finished(self.obs.nr_played_cards):
             turns = self._play_all_possible_turns(hands)
-            child_nodes = [Node(turn[0], node, turn[1]) for turn in turns]
+            child_nodes = []
+            for t in turns:
+                state = t[0]
+                my_hand = state.hands[state.player]
+                hand_sizes = self._sampler.get_hand_sizes(observation_from_state(state))
+                child_nodes.append(Node(my_hand, hand_sizes, parent=node, card=t[1]))
             node.isExpanded = True
             return np.random.choice(child_nodes)  # Choose random child state TODO: Use rules here?
         else:
             return node
 
     def _simulate(self, leaf_node: Node, hands):
-        # nr_played_cards = len(leaf_node.get_path())
+        HOW TO FIX THIS HERE AND WHERE TO CHECK FOR VISIBLE NODES????????????
         sim_obs = leaf_node.state
         while self._is_round_finished(sim_obs.nr_played_cards):
             # play a card
             sim_obs = self._turn_action.play_single_turn(hands, sim_obs, self._rule)
 
         leaf_node.calculate_payoff(sim_obs.player, sim_obs.points)
-        leaf_node.update_wins(sim_obs)
+        leaf_node.update_wins(sim_obs.player, sim_obs.points)
         return leaf_node
 
     def _backpropagate(self, node: Node):
@@ -70,10 +76,10 @@ class MonteCarloTreeSearch:
     def _play_all_possible_turns(self, hands):
         valid_cards = self._rule.get_valid_cards_from_obs(self.obs)
         turns = []
+        state = state_from_observation(self.obs, hands)
         for card in np.flatnonzero(valid_cards):
             simulation = GameSim(self._rule)
-            simulation.init_from_cards(hands, self.obs.dealer)
-            simulation.state.trump = self.obs.trump  # Why is it not set in init_from_cards?!?
+            simulation.init_from_state(state)
             simulation.action_play_card(card)
             turns.append([simulation.state, card])
 
