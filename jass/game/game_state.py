@@ -12,26 +12,26 @@ from jass.game.game_util import convert_int_encoded_cards_to_str_encoded, \
 
 class GameState:
     """
-    State of the match.
+    State of the game.
 
-     A GameState object captures the information in the following stages of the match:
+     A GameState object captures the information in the following stages of the game:
     - Cards have been dealt, but no trump is selected yet
     - The first player that is allowed to choose trump has passed this right to the partner (optional)
     - Trump has been declared by either player from the team that declares trump, but no card has been played yet
     - Between 1 and 35 cards have been played
-    - The last card has been played, which is the end of the match.
+    - The last card has been played, which is the end of the game.
 
     The class captures only the data without any logic how to change the data consistently.
     """
 
-    # version of match state
+    # version of game state
     FORMAT_VERSION = 'V0.2'
-    
+
     def __init__(self) -> None:
         """
         Initialize the class. All numpy arrays will be allocated.
         """
-        # dealer of the match
+        # dealer of the game
         self.dealer: int = -1
 
         # player of the next action, i.e. declaring trump or playing a card
@@ -86,22 +86,24 @@ class GameState:
             assert other.current_trick is None
             current_tricks_same = True
         else:
+            # noinspection PyUnresolvedReferences
             current_tricks_same = (self.current_trick == other.current_trick).all()
-        return self.dealer == other.dealer and \
-               self.player == other.player and \
-               self.trump == other.trump and \
-               self.forehand == other.forehand and \
-               self.declared_trump == other.declared_trump and \
-               (self.hands == other.hands).all() and \
-               (self.tricks == other.tricks).all() and \
-               (self.trick_first_player == other.trick_first_player).all() and \
-               (self.trick_winner == other.trick_winner).all() and \
-               (self.trick_points == other.trick_points).all() and \
-               self.nr_tricks == other.nr_tricks and \
-               current_tricks_same and \
-               self.nr_cards_in_trick == other.nr_cards_in_trick and \
-               self.nr_played_cards == other.nr_played_cards and \
-               (self.points == other.points).all()
+        return \
+            self.dealer == other.dealer and \
+            self.player == other.player and \
+            self.trump == other.trump and \
+            self.forehand == other.forehand and \
+            self.declared_trump == other.declared_trump and \
+            (self.hands == other.hands).all() and \
+            (self.tricks == other.tricks).all() and \
+            (self.trick_first_player == other.trick_first_player).all() and \
+            (self.trick_winner == other.trick_winner).all() and \
+            (self.trick_points == other.trick_points).all() and \
+            self.nr_tricks == other.nr_tricks and \
+            current_tricks_same and \
+            self.nr_cards_in_trick == other.nr_cards_in_trick and \
+            self.nr_played_cards == other.nr_played_cards and \
+            (self.points == other.points).all()
 
     def __repr__(self):
         return str(self.__dict__)
@@ -163,11 +165,10 @@ class GameState:
         Get the card played at a certain time. Utility method.
 
         Returns:
-            the card that was played as the card_nr card in the match
+            the card that was played as the card_nr card in the game
         """
         nr_trick, card_in_trick = divmod(card_nr, 4)
         return int(self.tricks[nr_trick, card_in_trick])
-
 
     @classmethod
     def from_json(cls, data: dict):
@@ -175,7 +176,7 @@ class GameState:
         Create state from dict (read from json)
         """
         state = GameState()
-        
+
         # if the version is present, it must be the correct version
         # if it is not there we accept the data for backward compatibility and in the future will assume this
         # version number if absent
@@ -210,7 +211,7 @@ class GameState:
                 # only set if trump has been declared
                 state.forehand = 1
             else:
-                # beginning of the match, when trump has not been set yet
+                # beginning of the game, when trump has not been set yet
                 state.forehand = -1
 
         if state.trump != -1:
@@ -265,6 +266,3 @@ class GameState:
             else:
                 state.points[1] += state.trick_points[trick]
         return state
-
-
-

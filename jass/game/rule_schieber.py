@@ -12,8 +12,8 @@ from jass.game.game_state import GameState
 
 class RuleSchieber(GameRule):
     """
-    Class for implementing rules of the jass match for the variation for 'Schieber'. These are:
-    - The match is played with trump
+    Class for implementing rules of the jass game for the variation for 'Schieber'. These are:
+    - The game is played with trump
 
     """
 
@@ -145,8 +145,6 @@ class RuleSchieber(GameRule):
                         # play anything except a lower trump
                         not_lower_trump_cards = 1 - lower_trump_cards
                         return hand * not_lower_trump_cards
-
-
 
     def calc_points(self, trick: np.ndarray, is_last: bool, trump: int = -1) -> int:
         """
@@ -281,4 +279,3 @@ class RuleSchieber(GameRule):
             nr_cards_in_current_trick = np.count_nonzero(state.current_trick[:] > -1)
             expected_cards_in_current_trick = (state.nr_played_cards % 4)
             assert nr_cards_in_current_trick == expected_cards_in_current_trick
-

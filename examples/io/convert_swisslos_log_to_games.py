@@ -3,7 +3,7 @@
 # Created by Thomas Koller on 05.08.20
 #
 """
-Convert Swisslos log files to match log files.
+Convert Swisslos log files to game log files.
 """
 
 
@@ -17,14 +17,14 @@ from json import JSONDecodeError
 from typing import List
 
 from jass.game.game_state import GameState
-from logs.log_entry_file_generator import LogEntryFileGenerator
+from jass.logs.log_entry_file_generator import LogEntryFileGenerator
 from jass.logs.game_log_entry import GameLogEntry
 
 
 class LogParserSwisslos:
     """
-    Class to parse the log files from swisslos, the file format is similar to the match log, but contains
-    not only json in a line and multiple games in a line (all between the same players). The actual match
+    Class to parse the log files from swisslos, the file format is similar to the game log, but contains
+    not only json in a line and multiple games in a line (all between the same players). The actual game
     information is still read by GameState.from_json().
     """
 
@@ -93,7 +93,7 @@ class LogParserSwisslos:
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Read log files and convert them to match log files')
+    parser = argparse.ArgumentParser(description='Read log files and convert them to game log files')
     parser.add_argument('--output', type=str, help='Base name of the output files', default='game_')
     parser.add_argument('--output_dir', type=str, help='Directory for output files')
     parser.add_argument('--max_games', type=int, default=100000, help='Maximal number of games in one file')
@@ -126,6 +126,8 @@ def main():
 
     logging.basicConfig(level=logging.INFO)
     nr_total = 0
+
+    os.makedirs(arg.output_dir, exist_ok=True)
 
     with LogEntryFileGenerator(basename, arg.max_games, arg.max_buffer) as log:
         for f in files:

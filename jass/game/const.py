@@ -3,7 +3,7 @@
 # Created by Thomas Koller on 24.07.18
 #
 """
-Constants, tables and small utility function for the jass match.
+Constants, tables and small utility function for the jass game.
 """
 
 # Implementation notes:
@@ -315,3 +315,6 @@ same_team = np.array(
         [True, False, True, False],
         [False, True, False, True]
     ], np.bool)
+
+# team 0/1 of players
+team = np.array([0, 1, 0, 1])

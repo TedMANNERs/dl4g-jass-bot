@@ -13,7 +13,7 @@ from jass.game.game_util import convert_int_encoded_cards_to_str_encoded, \
 
 class GameObservation:
     """
-    Observation of the state of the match from a player's view. This is the same as the GameState, except that
+    Observation of the state of the game from a player's view. This is the same as the GameState, except that
     a player does not see the hands (cards) of the other players:
         - the dealer
         - the player that declared trump,
@@ -28,7 +28,7 @@ class GameObservation:
         - the current player
         - the hand of the player
 
-     Similarly to match state, the GameObservation captures the information in the following stages of the match:
+     Similarly to game state, the GameObservation captures the information in the following stages of the game:
     - Cards have been dealt, but no trump is selected yet (and it is the player's turn to select trump)
     - The first player that is allowed to choose trump has passed this right to the partner, and it is the
     partners player's turn to select trump
@@ -40,14 +40,14 @@ class GameObservation:
     these cases, the variable GameObservation.player_view is used.
     """
 
-    # version of match observation (in json)
+    # version of game observation (in json)
     FORMAT_VERSION = 'V0.2'
 
     def __init__(self) -> None:
         """
         Initialize the class. All numpy arrays will be allocated.
         """
-        # dealer of the match
+        # dealer of the game
         self.dealer: int = -1
 
         # player of the next action, i.e. declaring trump or playing a card. T
@@ -99,6 +99,7 @@ class GameObservation:
 
         self.points = np.zeros(shape=2, dtype=np.int32)
 
+    # noinspection PyUnresolvedReferences
     def __eq__(self, other: 'GameObservation') -> bool:
         if self.nr_played_cards == 36:
             assert self.current_trick is None
@@ -245,7 +246,7 @@ class GameObservation:
         for i, player_data in enumerate(data['player']):
             if 'hand' in player_data and len(player_data['hand']) > 0:
                 if i != obs.player_view:
-                    logging.getLogger(__name__).error('Hand data for wrong player'.format(i))
+                    logging.getLogger(__name__).error('Hand data for wrong player {}'.format(i))
                 hand = player_data['hand']
                 for card_constant in hand:
                     obs.hand[card_ids[card_constant]] = 1
@@ -258,4 +259,3 @@ class GameObservation:
             else:
                 obs.points[1] += obs.trick_points[trick]
         return obs
-
