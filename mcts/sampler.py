@@ -13,7 +13,7 @@ class Sampler:
                 hands[player] = obs.hand
             else:
                 hands[player], other_player_cards = self._get_random_hand(other_player_cards, player, obs)
-        print(other_player_cards)
+        # print(other_player_cards)
         return hands
 
     def _get_other_player_cards(self, obs: GameObservation):

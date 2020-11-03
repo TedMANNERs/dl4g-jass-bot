@@ -1,8 +1,7 @@
 # Node = information set
 class Node:
-    def __init__(self, my_hand, hand_sizes, parent=None, card=None):
+    def __init__(self, my_hand, parent=None, card=None):
         self.my_hand = my_hand
-        self.hand_sizes = hand_sizes
         self.parent = parent
         self.children = []
         self.card = card
@@ -21,6 +20,10 @@ class Node:
             node = node.parent
             path.append(node)
         return path
+
+    def is_compatible(self, valid_cards_for_parent):
+        # the played card must a valid card from the hand of the parent node
+        return valid_cards_for_parent[self.card] > 0
 
     def calculate_payoff(self, player, points):
         MAX_POINTS = 157
