@@ -34,7 +34,7 @@ def create_app():
     # add some players
     app.add_player('migrosoft_random', AgentRandomSchieber())
     app.add_player('migrosoft_simple_rule', AgentSimpleRule())
-    app.add_player('migrosoft_ismcts', AgentMonteCarlo(1.0))
+    app.add_player('migrosoft_ismcts', AgentMonteCarlo(5.0))
 
     return app
 
