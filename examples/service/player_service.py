@@ -6,7 +6,10 @@
 Example how to use flask to create a service for one or more players
 """
 import logging
+import os
 
+from jass.agents.agent_monte_carlo import AgentMonteCarlo
+from jass.agents.agent_simple_rule import AgentSimpleRule
 from jass.service.player_service_app import PlayerServiceApp
 from jass.agents.agent_random_schieber import AgentRandomSchieber
 
@@ -29,12 +32,14 @@ def create_app():
     # app.config.from_pyfile('my_player_service.cfg', silent=False)
 
     # add some players
-    app.add_player('random', AgentRandomSchieber())
+    app.add_player('migrosoft_random', AgentRandomSchieber())
+    app.add_player('migrosoft_simple_rule', AgentSimpleRule())
+    app.add_player('migrosoft_ismcts', AgentMonteCarlo(1.0))
 
     return app
 
 
 if __name__ == '__main__':
-   app = create_app()
-   app.run()
+    app = create_app()
+    app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 5000)))
 
