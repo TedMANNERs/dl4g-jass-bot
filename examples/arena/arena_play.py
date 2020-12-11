@@ -7,7 +7,7 @@ import logging
 import numpy as np
 
 from jass.agents.agent import Agent
-from jass.agents.agent_monte_carlo import AgentMonteCarlo
+from jass.agents.agent_deep_monte_carlo import AgentDeepMonteCarlo
 from jass.agents.agent_simple_rule import AgentSimpleRule
 from jass.arena.arena import Arena
 from jass.agents.agent_random_schieber import AgentRandomSchieber
@@ -52,9 +52,9 @@ def main():
     logging.basicConfig(level=logging.WARNING)
 
     # setup the arena
-    arena = Arena(nr_games_to_play=3, save_filename='arena_games')
-    player = AgentSimpleRule()  # TEAM 0
-    my_player = AgentMonteCarlo(1.0)  # TEAM 1
+    arena = Arena(nr_games_to_play=1, save_filename='arena_games')
+    player = AgentDeepMonteCarlo(1.0)  # TEAM 0
+    my_player = AgentSimpleRule()  # TEAM 1
 
     arena.set_players(my_player, player, my_player, player)
     print('Playing {} games'.format(arena.nr_games_to_play))
