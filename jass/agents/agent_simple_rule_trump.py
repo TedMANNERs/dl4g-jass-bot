@@ -1,40 +1,27 @@
-import time
+
 import logging
-import numpy as np
-import tensorflow as tf
 import pandas as pd
 from tensorflow import keras
 from jass.agents.agent import Agent
 from jass.game.game_observation import GameObservation
 from jass.game.rule_schieber import RuleSchieber
-from jass.game.const import *
-from mcts.mcts import MonteCarloTreeSearch
 from jass.agent_actions.actions import *
-from mcts.turn_action import HeuristicTurnAction
 
-class AgentDeepMonteCarlo(Agent):
+
+class AgentSimpleRuleTrump (Agent):
     """
     Agent to act as a player in a match of jass.
     """
-    def __init__(self, simulation_time):
-        self.simulation_time = simulation_time
+    def __init__(self):
         # log actions
         self._logger = logging.getLogger(__name__)
         # Use rule object to determine valid actions
         self._rule = RuleSchieber()
         # init random number generator
         self._rng = np.random.default_rng()
-        self.other_player_cards = []
-
-        #physical_devices = tf.config.list_physical_devices('GPU')
-        #tf.config.experimental.set_memory_growth(physical_devices[0], True)
         self.trump_model = keras.models.load_model('../../models/trump0631')
 
     def action_trump(self, obs: GameObservation) -> int:
-        self._logger.info('Trump request')
-
-        #trump_points = get_trump_card_sums(obs.hand)
-        # predict returns array with probabilities for each trump choice + PUSH (7 Values)
         hand = np.array([obs.hand])
         cards = [
             # Diamonds
@@ -79,7 +66,7 @@ class AgentDeepMonteCarlo(Agent):
         prediction = prediction[0]
         # result = pd.DataFrame(data=prediction,
         #                      columns=["DIAMONDS", "HEARTS", "SPADES", "CLUBS", "OBE_ABE", "UNE_UFE", "PUSH"])
-        #print(result)
+        # print(result)
         max_index = np.argmax(prediction)
 
         if max_index == PUSH_ALT:
@@ -91,13 +78,31 @@ class AgentDeepMonteCarlo(Agent):
         self._logger.info('Result: {}'.format(max_index))
         return max_index
 
+    # TODO: color_masks does not work for UNE_UFE and OBE_ABE (separate logic?)
     def action_play_card(self, obs: GameObservation) -> int:
-        search_tree = MonteCarloTreeSearch(obs, self._rule, HeuristicTurnAction())
-        node = search_tree.get_best_node_from_simulation()
-        start_time = time.time()
-        while time.time() - start_time <= self.simulation_time:
-            node = search_tree.get_best_node_from_simulation()
+        """
+        Determine the card to play.
 
-        card = node.card
-        self._logger.info('Played card: {}'.format(card_strings[card]))
-        return card
+        Args:
+            obs: the match observation
+
+        Returns:
+            the card to play, int encoded as defined in jass.match.const
+        """
+        try:
+            play_card = get_best_card_using_simple_rules_from_obs(obs, self._rule)
+            self._logger.info('Played card: {}'.format(card_strings[play_card]))
+            return play_card
+
+        except Exception as e:
+            valid_cards = self._rule.get_valid_cards_from_obs(obs)
+            self._logger.error("\n"
+                               "Hand          = {0}\n"
+                               "Valid Cards   = {1}\n"
+                               "Trump         = {2}\n"
+                               "Current Trick = {3}"
+                               .format(obs.hand, valid_cards, obs.trump, obs.current_trick))
+            self._logger.error("Rule failed. Continuing with random card.", e)
+            card = self._rng.choice(np.flatnonzero(valid_cards))
+            self._logger.info('Played card: {}'.format(card_strings[card]))
+            return card
