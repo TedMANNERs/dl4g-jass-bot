@@ -10,7 +10,7 @@ from jass.game.rule_schieber import RuleSchieber
 from jass.game.const import *
 from mcts.mcts import MonteCarloTreeSearch
 from jass.agent_actions.actions import *
-from mcts.turn_action import HeuristicTurnAction
+from mcts.turn_action import DeepTurnAction
 
 class AgentDeepMonteCarlo(Agent):
     """
@@ -29,11 +29,11 @@ class AgentDeepMonteCarlo(Agent):
         #physical_devices = tf.config.list_physical_devices('GPU')
         #tf.config.experimental.set_memory_growth(physical_devices[0], True)
         self.trump_model = keras.models.load_model('../../models/trump0631')
+        self.cards_model = keras.models.load_model('../../models/CardsModel05865')
 
     def action_trump(self, obs: GameObservation) -> int:
         self._logger.info('Trump request')
 
-        #trump_points = get_trump_card_sums(obs.hand)
         # predict returns array with probabilities for each trump choice + PUSH (7 Values)
         hand = np.array([obs.hand])
         cards = [
@@ -77,9 +77,7 @@ class AgentDeepMonteCarlo(Agent):
         input_hand = np.array([hand.iloc[0].values])
         prediction = self.trump_model.predict(input_hand)
         prediction = prediction[0]
-        # result = pd.DataFrame(data=prediction,
-        #                      columns=["DIAMONDS", "HEARTS", "SPADES", "CLUBS", "OBE_ABE", "UNE_UFE", "PUSH"])
-        #print(result)
+
         max_index = np.argmax(prediction)
 
         if max_index == PUSH_ALT:
@@ -92,10 +90,11 @@ class AgentDeepMonteCarlo(Agent):
         return max_index
 
     def action_play_card(self, obs: GameObservation) -> int:
-        search_tree = MonteCarloTreeSearch(obs, self._rule, HeuristicTurnAction())
+        search_tree = MonteCarloTreeSearch(obs, self._rule, DeepTurnAction(self.cards_model))
         node = search_tree.get_best_node_from_simulation()
         start_time = time.time()
         while time.time() - start_time <= self.simulation_time:
+            print('Do MCTS')
             node = search_tree.get_best_node_from_simulation()
 
         card = node.card

@@ -52,11 +52,11 @@ def main():
     logging.basicConfig(level=logging.WARNING)
 
     # setup the arena
-    arena = Arena(nr_games_to_play=1, save_filename='arena_games')
-    player = AgentDeepMonteCarlo(1.0)  # TEAM 0
-    my_player = AgentSimpleRule()  # TEAM 1
+    arena = Arena(nr_games_to_play=3, save_filename='arena_games')
+    player_team1 = AgentDeepMonteCarlo(1.0)
+    player_team0 = AgentSimpleRule()
 
-    arena.set_players(my_player, player, my_player, player)
+    arena.set_players(player_team0, player_team1, player_team0, player_team1)
     print('Playing {} games'.format(arena.nr_games_to_play))
     arena.play_all_games()
     print('Average Points Team 0: {:.2f})'.format(arena.points_team_0.mean()))

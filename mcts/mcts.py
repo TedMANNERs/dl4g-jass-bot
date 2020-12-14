@@ -26,7 +26,6 @@ class MonteCarloTreeSearch:
         hands = self._sampler.get_random_sample(self.obs)
         game_state = state_from_observation(self.obs, hands)
 
-        print("SELECTION")
         selected_node, game_state = self._select_next_node(game_state)
         expanded_node = self._expand_node(selected_node, game_state)
         if not expanded_node == selected_node:
@@ -40,7 +39,7 @@ class MonteCarloTreeSearch:
     def _select_next_node(self, game_state: GameState):
         node = self.root
         while node.isExpanded:
-            print(node.card)
+            print('Selected card = {}'.format(node.card))
             valid_cards = self._rule.get_valid_cards_from_state(game_state)
             best_node = self._get_next_ucb1_child(node, valid_cards)
             if best_node == node:
