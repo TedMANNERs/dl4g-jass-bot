@@ -7,6 +7,7 @@ import logging
 import numpy as np
 
 from jass.agents.agent import Agent
+from jass.agents.agent_deep import AgentDeep
 from jass.agents.agent_deep_monte_carlo import AgentDeepMonteCarlo
 from jass.agents.agent_simple_rule import AgentSimpleRule
 from jass.arena.arena import Arena
@@ -52,8 +53,8 @@ def main():
     logging.basicConfig(level=logging.WARNING)
 
     # setup the arena
-    arena = Arena(nr_games_to_play=3, save_filename='arena_games')
-    player_team1 = AgentDeepMonteCarlo(1.0)
+    arena = Arena(nr_games_to_play=100, save_filename='arena_games')
+    player_team1 = AgentDeep()
     player_team0 = AgentSimpleRule()
 
     arena.set_players(player_team0, player_team1, player_team0, player_team1)
